@@ -13,7 +13,8 @@ import java.math.BigDecimal;
 @Table(name = "employees")
 public class Employee {
     @Id
-    private String id;
+    @GeneratedValue
+    private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "position_id", nullable = false)

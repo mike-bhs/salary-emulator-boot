@@ -5,15 +5,11 @@ import com.training.salaryemulatorboot.domain.Position;
 import com.training.salaryemulatorboot.domain.Promotion;
 import com.training.salaryemulatorboot.repositories.PromotionRepository;
 import helpers.Factory;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 import org.mockito.*;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.math.BigDecimal;
 import java.util.Date;
-import java.util.UUID;
 
 import static org.mockito.Mockito.*;
 
@@ -25,27 +21,96 @@ public class PromotionServiceTest {
     private PromotionService promotionService;
 
     @BeforeEach
-    void setUp() {
-        MockitoAnnotations.openMocks(this);
+    public void setUp() {
+        MockitoAnnotations.initMocks(this);
     }
 
     @Test
-    public void Should_Create_Promotion_When_Valid_Data() {
-        Promotion expectedPromotion = Factory.getPromotion();
+    public void Should_Create_Initial_Promotion() {
         Employee employee = Factory.getEmployee();
-        UUID promotionUuid = UUID.fromString(expectedPromotion.getId());
-        Position newPosition = expectedPromotion.getNewPosition();
-        Date promotionDate = expectedPromotion.getPromotionDate();
-        BigDecimal newSalaryAmount = expectedPromotion.getNewSalaryAmount();
+        Promotion initialPromotion = getInitialPromotion(employee);
 
-        try (MockedStatic<UUID> uuidMock = Mockito.mockStatic(UUID.class)) {
-            uuidMock.when(UUID::randomUUID).thenReturn(promotionUuid);
-            when(promotionRepository.save(expectedPromotion)).thenReturn(expectedPromotion);
+        promotionService.createInitialPromotion(employee);
 
-            Promotion actualPromotion = promotionService.createPromotion(employee, newPosition, newSalaryAmount, promotionDate);
+        verify(promotionRepository, times(1)).save(initialPromotion);
+    }
 
-            verify(promotionRepository, times(1)).save(expectedPromotion);
-            assertEquals(expectedPromotion, actualPromotion);
-        }
+
+    @Test
+    public void Should_Create_Salary_Promotion() {
+        Employee employee = Factory.getEmployee();
+        BigDecimal newSalary = new BigDecimal("123.45");
+        Date promotionDate = new Date();
+        Promotion salaryPromotion = getSalaryPromotion(employee, newSalary, promotionDate);
+
+        promotionService.createSalaryPromotion(employee, newSalary, promotionDate);
+
+        verify(promotionRepository, times(1)).save(salaryPromotion);
+    }
+
+    @Test
+    public void Should_Create_Position_Promotion() {
+        Employee employee = Factory.getEmployee();
+        Position newPosition = Factory.getPosition(111L, "engineering_manager");
+        Date promotionDate = new Date();
+        Promotion positionPromotion = getPositionPromotion(employee, newPosition, promotionDate);
+
+        promotionService.createPositionPromotion(employee, newPosition, promotionDate);
+
+        verify(promotionRepository, times(1)).save(positionPromotion);
+    }
+
+    @Test
+    public void Should_Create_Position_And_Salary_Promotion() {
+        Employee employee = Factory.getEmployee();
+        BigDecimal newSalary = new BigDecimal("123.45");
+        Position newPosition = Factory.getPosition(111L, "engineering_manager");
+        Date promotionDate = new Date();
+        Promotion promotion = getPositionPromotion(employee, newPosition, promotionDate);
+        promotion.setNewSalaryAmount(newSalary);
+
+        promotionService.createPromotion(employee, newPosition, newSalary, promotionDate);
+
+        verify(promotionRepository, times(1)).save(promotion);
+    }
+
+    @TestFactory
+    private Promotion getInitialPromotion(Employee employee) {
+        Promotion promotion = new Promotion();
+
+        promotion.setEmployee(employee);
+        promotion.setNewSalaryAmount(employee.getSalaryAmount());
+        promotion.setPromotionDate(new Date());
+        promotion.setNewPosition(employee.getPosition());
+
+        return promotion;
+    }
+
+    @TestFactory
+    private Promotion getSalaryPromotion(Employee employee, BigDecimal newSalary, Date promotionDate) {
+        Promotion promotion = new Promotion();
+
+        promotion.setEmployee(employee);
+        promotion.setOldSalaryAmount(employee.getSalaryAmount());
+        promotion.setNewSalaryAmount(newSalary);
+        promotion.setPromotionDate(promotionDate);
+        promotion.setOldPosition(employee.getPosition());
+        promotion.setNewPosition(employee.getPosition());
+
+        return promotion;
+    }
+
+    @TestFactory
+    private Promotion getPositionPromotion(Employee employee, Position newPosition, Date promotionDate) {
+        Promotion promotion = new Promotion();
+
+        promotion.setEmployee(employee);
+        promotion.setOldSalaryAmount(employee.getSalaryAmount());
+        promotion.setNewSalaryAmount(employee.getSalaryAmount());
+        promotion.setPromotionDate(promotionDate);
+        promotion.setOldPosition(employee.getPosition());
+        promotion.setNewPosition(newPosition);
+
+        return promotion;
     }
 }

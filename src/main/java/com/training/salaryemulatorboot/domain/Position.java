@@ -18,7 +18,8 @@ import javax.validation.constraints.NotEmpty;
 public class Position {
     @Id
     @Access(AccessType.PROPERTY)
-    private String id;
+    @GeneratedValue
+    private Long id;
 
     @Column(name = "name", nullable = false)
     @NotEmpty(message = "Please provide a name")

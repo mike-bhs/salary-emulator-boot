@@ -1,18 +1,17 @@
 package com.training.salaryemulatorboot.controllers;
 
-import com.training.salaryemulatorboot.domain.Employee;
 import com.training.salaryemulatorboot.dto.EmployeeDTO;
+import com.training.salaryemulatorboot.dto.PromotionDTO;
 import com.training.salaryemulatorboot.repositories.EmployeeRepository;
 import com.training.salaryemulatorboot.services.EmployeeService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
 
-import javax.validation.Valid;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -20,53 +19,47 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 @RestController
-@RequestMapping("/api")
+@RequestMapping("/api/v1/employees")
 public class EmployeesController {
-    @Autowired
-    private EmployeeRepository employeeRepository;
+    private final EmployeeRepository employeeRepository;
+    private final EmployeeService employeeService;
+    private final Logger logger;
 
-    @Autowired
-    private EmployeeService employeeService;
+    public EmployeesController(EmployeeRepository empRepo, EmployeeService empService) {
+        this.employeeRepository = empRepo;
+        this.employeeService = empService;
+        this.logger = LoggerFactory.getLogger(EmployeesController.class);
+    }
 
-    Logger logger = LoggerFactory.getLogger(EmployeesController.class);
+    @GetMapping(produces = {"application/json"})
+    public List<EmployeeDTO> getAllEmployees() { return employeeService.getAllEmployees(); }
 
-    @GetMapping("/employees")
-    public List<Employee> getAllEmployees() { return employeeRepository.findAll(); }
-//    public List<EmployeeDTO> getAllEmployees() { return employeeService.getAllEmployees(); }
+    @GetMapping(path = {"/{employeeId}"}, produces = {"application/json"})
+    public ResponseEntity<EmployeeDTO> getEmployeeById(@PathVariable("employeeId") Long employeeId) {
+        Optional<EmployeeDTO> employeeData = employeeService.findById(employeeId);
 
-    @GetMapping("/employees/{id}")
-    public ResponseEntity<EmployeeDTO> getEmployeeById(@PathVariable("id") String id) {
-        Optional<EmployeeDTO> employeeData = employeeService.findById(id);
-
-        if (employeeData.isPresent()) {
-            return new ResponseEntity<>(employeeData.get(), HttpStatus.OK);
-        } else {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
+        return employeeData
+                .map(employeeDTO -> new ResponseEntity<>(employeeDTO, HttpStatus.OK))
+                .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
     }
 
     // TODO add validation later
-    @PostMapping("/employees")
-    public ResponseEntity<Object> createEmployee(@RequestBody EmployeeDTO employee) {
-        Employee emp = new Employee();
+    @PostMapping(produces = {"application/json"})
+    public ResponseEntity<EmployeeDTO> createEmployee(@RequestBody EmployeeDTO employeeDTO) {
+        EmployeeDTO newEmployee = employeeService.createEmployee(employeeDTO);
 
-        try {
-            Employee newEmployee = employeeRepository.save(emp);
-            return new ResponseEntity<>(newEmployee, HttpStatus.CREATED);
-        } catch (Exception e) {
-            logger.error(String.format("Failed to create employee: %s", e.getMessage()));
-            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
-        }
+        return new ResponseEntity<>(newEmployee, HttpStatus.CREATED);
     }
 
-    @DeleteMapping("/employees/{id}")
-    public ResponseEntity<HttpStatus> deleteEmployee(@PathVariable("id") String id) {
-        try {
-            employeeRepository.deleteById(id);
-            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-        } catch (Exception e) {
-            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
-        }
+    @PutMapping(path = {"/{employeeId}/promote"}, produces = {"application/json"})
+    public ResponseEntity<EmployeeDTO> promoteEmployee(@PathVariable("employeeId") Long employeeId,
+                                                       @RequestBody PromotionDTO promotionDTO) {
+
+        Optional<EmployeeDTO> employeeData = employeeService.promoteEmployee(employeeId, promotionDTO);
+
+        return employeeData
+                .map(employeeDTO -> new ResponseEntity<>(employeeDTO, HttpStatus.OK))
+                .orElseGet(() -> new ResponseEntity<>(HttpStatus.BAD_REQUEST));
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
@@ -77,7 +70,7 @@ public class EmployeesController {
         List<String> errors = ex.getBindingResult()
                 .getFieldErrors()
                 .stream()
-                .map(x -> x.getDefaultMessage())
+                .map(DefaultMessageSourceResolvable::getDefaultMessage)
                 .collect(Collectors.toList());
 
         body.put("errors", errors);

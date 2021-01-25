@@ -9,7 +9,7 @@ import java.math.BigDecimal;
 import java.util.Optional;
 
 @Repository
-public interface EmployeeRepository extends JpaRepository<Employee, String> {
+public interface EmployeeRepository extends JpaRepository<Employee, Long> {
     @Transactional
     Optional<Employee> findBySalaryAmount(BigDecimal salaryAmount);
 }

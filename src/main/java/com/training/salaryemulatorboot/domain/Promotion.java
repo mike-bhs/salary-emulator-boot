@@ -13,14 +13,15 @@ import java.util.Date;
 @Table(name = "promotions")
 public class Promotion {
     @Id
-    private String id;
+    @GeneratedValue
+    private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "employee_id", nullable = false)
     @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
     private Employee employee;
 
-    @Column(name = "old_salary_amount", nullable = false)
+    @Column(name = "old_salary_amount")
     @Min(value = 0, message = "old_salary_amount should be more than 0")
     private BigDecimal oldSalaryAmount;
 
@@ -29,7 +30,7 @@ public class Promotion {
     private BigDecimal newSalaryAmount;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "old_position_id", nullable = false)
+    @JoinColumn(name = "old_position_id")
     @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
     private Position oldPosition;
 
@@ -40,10 +41,4 @@ public class Promotion {
 
     @Column(name = "promotion_date", nullable = false)
     private Date promotionDate;
-
-    public void setEmployeeRelatedFields(Employee employee) {
-        setEmployee(employee);
-        setOldSalaryAmount(employee.getSalaryAmount());
-        setOldPosition(employee.getPosition());
-    }
 }
