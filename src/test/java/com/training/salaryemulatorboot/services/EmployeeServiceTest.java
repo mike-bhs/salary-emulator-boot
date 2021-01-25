@@ -35,14 +35,16 @@ public class EmployeeServiceTest {
     @InjectMocks
     private EmployeeService employeeService;
 
+    private Employee employee;
+
     @BeforeEach
     public void setUp() {
+        employee = Factory.getEmployee();
         MockitoAnnotations.initMocks(this);
     }
 
     @Test
     public void Should_Return_All_Employees() {
-        Employee employee = Factory.getEmployee();
         List<EmployeeDTO> expectedResult = Arrays.asList(employeeDTO(employee));
 
         when(employeeRepository.findAll()).thenReturn(Arrays.asList(employee));
@@ -56,8 +58,6 @@ public class EmployeeServiceTest {
 
     @Test
     public void Should_Return_Employee_By_Id() {
-        Employee employee = Factory.getEmployee();
-
         when(employeeRepository.findById(employee.getId())).thenReturn(Optional.of(employee));
 
         EmployeeDTO actualResult = employeeService.findById(employee.getId()).get();
@@ -69,7 +69,6 @@ public class EmployeeServiceTest {
 
     @Test
     public void Should_CreateEmployee_When_ValidData() {
-        Employee employee = Factory.getEmployee();
         Position position = employee.getPosition();
         EmployeeDTO employeeDTO = employeeDTO(employee);
 
@@ -93,8 +92,6 @@ public class EmployeeServiceTest {
 
     @Test
     public void Should_Promote_Employee_Salary() {
-        Employee employee = Factory.getEmployee();
-
         PromotionDTO promotionDTO = new PromotionDTO();
         promotionDTO.setNewSalaryAmount(new BigDecimal("1700"));
         promotionDTO.setPromotionDate(new Date());
@@ -124,7 +121,6 @@ public class EmployeeServiceTest {
 
     @Test
     public void Should_Promote_Employee_Position() {
-        Employee employee = Factory.getEmployee();
         Position newPosition = Factory.getPosition(111L, "engineering_manager");
 
         PromotionDTO promotionDTO = new PromotionDTO();
@@ -157,7 +153,6 @@ public class EmployeeServiceTest {
 
     @Test
     public void Should_Promote_Employee_Salary_And_Position() {
-        Employee employee = Factory.getEmployee();
         Position newPosition = Factory.getPosition(111L, "engineering_manager");
 
         PromotionDTO promotionDTO = new PromotionDTO();
