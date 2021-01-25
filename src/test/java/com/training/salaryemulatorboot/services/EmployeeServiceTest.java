@@ -13,7 +13,9 @@ import org.junit.jupiter.api.TestFactory;
 import org.mockito.*;
 
 import java.math.BigDecimal;
+import java.util.Arrays;
 import java.util.Date;
+import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertAll;
@@ -36,6 +38,33 @@ public class EmployeeServiceTest {
     @BeforeEach
     public void setUp() {
         MockitoAnnotations.initMocks(this);
+    }
+
+    @Test
+    public void Should_Return_All_Employees() {
+        Employee employee = Factory.getEmployee();
+        List<EmployeeDTO> expectedResult = Arrays.asList(employeeDTO(employee));
+
+        when(employeeRepository.findAll()).thenReturn(Arrays.asList(employee));
+
+        List<EmployeeDTO> actualResult = employeeService.getAllEmployees();
+
+        verify(employeeRepository, times(1)).findAll();
+
+        assertEquals(expectedResult, actualResult);
+    }
+
+    @Test
+    public void Should_Return_Employee_By_Id() {
+        Employee employee = Factory.getEmployee();
+
+        when(employeeRepository.findById(employee.getId())).thenReturn(Optional.of(employee));
+
+        EmployeeDTO actualResult = employeeService.findById(employee.getId()).get();
+
+        verify(employeeRepository, times(1)).findById(employee.getId());
+
+        assertEquals(employeeDTO(employee), actualResult);
     }
 
     @Test
