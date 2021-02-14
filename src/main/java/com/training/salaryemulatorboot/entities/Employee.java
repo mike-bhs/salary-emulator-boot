@@ -1,4 +1,4 @@
-package com.training.salaryemulatorboot.domain;
+package com.training.salaryemulatorboot.entities;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.Data;

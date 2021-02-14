@@ -1,4 +1,4 @@
-package com.training.salaryemulatorboot.domain;
+package com.training.salaryemulatorboot.entities;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.Data;
@@ -14,7 +14,7 @@ import javax.validation.constraints.NotEmpty;
 // сохранять историю позиции Jr -> Middle -> Senior
 // когда позиция была занята?
 // как поменялось количество подчененных изменилось за год
-
+// Intercepter for incoming value
 public class Position {
     @Id
     @Access(AccessType.PROPERTY)

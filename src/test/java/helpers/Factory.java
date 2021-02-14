@@ -1,8 +1,9 @@
 package helpers;
 
-import com.training.salaryemulatorboot.domain.Employee;
-import com.training.salaryemulatorboot.domain.Position;
-import com.training.salaryemulatorboot.domain.Promotion;
+import com.training.salaryemulatorboot.dto.EmployeeDto;
+import com.training.salaryemulatorboot.entities.Employee;
+import com.training.salaryemulatorboot.entities.Position;
+import com.training.salaryemulatorboot.entities.Promotion;
 import org.junit.jupiter.api.TestFactory;
 
 import java.math.BigDecimal;
@@ -36,14 +37,28 @@ public class Factory {
         return emp;
     }
 
+    public static EmployeeDto getEmployeeDto() {
+        EmployeeDto employeeDto = new EmployeeDto();
+        employeeDto.setId(101L);
+        employeeDto.setName("Bob");
+        employeeDto.setPositionId(123L);
+        employeeDto.setSalaryAmount(new BigDecimal("2343.25"));
+        employeeDto.setSalaryCurrency("USD");
+
+        return employeeDto;
+    }
+
+    @TestFactory
     public static Position getPosition() {
         return getPosition(123L, "software_engineer");
     }
 
+    @TestFactory
     public static Position getPosition(Long id, String name) {
         return getPosition(id, name, null);
     }
 
+    @TestFactory
     public static Position getPosition(Long id, String name, Position manager) {
         Position p = new Position();
         p.setId(id);

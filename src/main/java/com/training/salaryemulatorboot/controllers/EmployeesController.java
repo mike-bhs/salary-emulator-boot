@@ -1,11 +1,11 @@
 package com.training.salaryemulatorboot.controllers;
 
-import com.training.salaryemulatorboot.dto.EmployeeDTO;
-import com.training.salaryemulatorboot.dto.PromotionDTO;
-import com.training.salaryemulatorboot.repositories.EmployeeRepository;
+import com.training.salaryemulatorboot.dto.EmployeeDto;
+import com.training.salaryemulatorboot.dto.PromotionDto;
+import com.training.salaryemulatorboot.entities.Employee;
+import com.training.salaryemulatorboot.mappers.EmployeeMapper;
 import com.training.salaryemulatorboot.services.EmployeeService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -20,45 +20,41 @@ import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/v1/employees")
+@RequiredArgsConstructor
 public class EmployeesController {
-    private final EmployeeRepository employeeRepository;
     private final EmployeeService employeeService;
-    private final Logger logger;
-
-    public EmployeesController(EmployeeRepository empRepo, EmployeeService empService) {
-        this.employeeRepository = empRepo;
-        this.employeeService = empService;
-        this.logger = LoggerFactory.getLogger(EmployeesController.class);
-    }
+    private final EmployeeMapper employeeMapper;
 
     @GetMapping(produces = {"application/json"})
-    public List<EmployeeDTO> getAllEmployees() { return employeeService.getAllEmployees(); }
+    public List<EmployeeDto> getAllEmployees() {
+        return employeeMapper.toEmployeeDtos(employeeService.getAllEmployees());
+    }
 
     @GetMapping(path = {"/{employeeId}"}, produces = {"application/json"})
-    public ResponseEntity<EmployeeDTO> getEmployeeById(@PathVariable("employeeId") Long employeeId) {
-        Optional<EmployeeDTO> employeeData = employeeService.findById(employeeId);
+    public ResponseEntity<EmployeeDto> getEmployeeById(@PathVariable("employeeId") Long employeeId) {
+        Optional<Employee> employeeOptional = employeeService.findById(employeeId);
 
-        return employeeData
-                .map(employeeDTO -> new ResponseEntity<>(employeeDTO, HttpStatus.OK))
+        return employeeOptional
+                .map(emp -> new ResponseEntity<>(employeeMapper.toEmployeeDto(emp), HttpStatus.OK))
                 .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
     }
 
     // TODO add validation later
     @PostMapping(produces = {"application/json"})
-    public ResponseEntity<EmployeeDTO> createEmployee(@RequestBody EmployeeDTO employeeDTO) {
-        EmployeeDTO newEmployee = employeeService.createEmployee(employeeDTO);
+    public ResponseEntity<EmployeeDto> createEmployee(@RequestBody EmployeeDto employeeDto) {
+        Employee newEmployee = employeeService.createEmployee(employeeDto);
 
-        return new ResponseEntity<>(newEmployee, HttpStatus.CREATED);
+        return new ResponseEntity<>(employeeMapper.toEmployeeDto(newEmployee), HttpStatus.CREATED);
     }
 
     @PutMapping(path = {"/{employeeId}/promote"}, produces = {"application/json"})
-    public ResponseEntity<EmployeeDTO> promoteEmployee(@PathVariable("employeeId") Long employeeId,
-                                                       @RequestBody PromotionDTO promotionDTO) {
+    public ResponseEntity<EmployeeDto> promoteEmployee(@PathVariable("employeeId") Long employeeId,
+                                                       @RequestBody PromotionDto promotionDTO) {
 
-        Optional<EmployeeDTO> employeeData = employeeService.promoteEmployee(employeeId, promotionDTO);
+        Optional<Employee> employeeOptional = employeeService.promoteEmployee(employeeId, promotionDTO);
 
-        return employeeData
-                .map(employeeDTO -> new ResponseEntity<>(employeeDTO, HttpStatus.OK))
+        return employeeOptional
+                .map(emp -> new ResponseEntity<>(employeeMapper.toEmployeeDto(emp), HttpStatus.OK))
                 .orElseGet(() -> new ResponseEntity<>(HttpStatus.BAD_REQUEST));
     }
 

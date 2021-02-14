@@ -1,8 +1,8 @@
 package com.training.salaryemulatorboot.services;
 
-import com.training.salaryemulatorboot.domain.Employee;
-import com.training.salaryemulatorboot.domain.Position;
-import com.training.salaryemulatorboot.domain.Promotion;
+import com.training.salaryemulatorboot.entities.Employee;
+import com.training.salaryemulatorboot.entities.Position;
+import com.training.salaryemulatorboot.entities.Promotion;
 import com.training.salaryemulatorboot.repositories.PromotionRepository;
 import org.springframework.stereotype.Service;
 

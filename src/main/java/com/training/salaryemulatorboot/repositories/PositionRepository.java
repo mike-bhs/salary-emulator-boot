@@ -1,6 +1,6 @@
 package com.training.salaryemulatorboot.repositories;
 
-import com.training.salaryemulatorboot.domain.Position;
+import com.training.salaryemulatorboot.entities.Position;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;

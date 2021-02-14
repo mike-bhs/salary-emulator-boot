@@ -1,8 +1,8 @@
 package com.training.salaryemulatorboot.services;
 
-import com.training.salaryemulatorboot.domain.Employee;
-import com.training.salaryemulatorboot.domain.Position;
-import com.training.salaryemulatorboot.domain.Promotion;
+import com.training.salaryemulatorboot.entities.Employee;
+import com.training.salaryemulatorboot.entities.Position;
+import com.training.salaryemulatorboot.entities.Promotion;
 import com.training.salaryemulatorboot.repositories.PromotionRepository;
 import helpers.Factory;
 import org.junit.jupiter.api.*;
@@ -20,9 +20,12 @@ public class PromotionServiceTest {
     @InjectMocks
     private PromotionService promotionService;
 
+    private Employee employee;
+
     @BeforeEach
     public void setUp() {
         MockitoAnnotations.initMocks(this);
+        employee = Factory.getEmployee();
     }
 
     @Test
@@ -35,10 +38,8 @@ public class PromotionServiceTest {
         verify(promotionRepository, times(1)).save(initialPromotion);
     }
 
-
     @Test
     public void Should_Create_Salary_Promotion() {
-        Employee employee = Factory.getEmployee();
         BigDecimal newSalary = new BigDecimal("123.45");
         Date promotionDate = new Date();
         Promotion salaryPromotion = getSalaryPromotion(employee, newSalary, promotionDate);
@@ -50,7 +51,6 @@ public class PromotionServiceTest {
 
     @Test
     public void Should_Create_Position_Promotion() {
-        Employee employee = Factory.getEmployee();
         Position newPosition = Factory.getPosition(111L, "engineering_manager");
         Date promotionDate = new Date();
         Promotion positionPromotion = getPositionPromotion(employee, newPosition, promotionDate);
@@ -62,7 +62,6 @@ public class PromotionServiceTest {
 
     @Test
     public void Should_Create_Position_And_Salary_Promotion() {
-        Employee employee = Factory.getEmployee();
         BigDecimal newSalary = new BigDecimal("123.45");
         Position newPosition = Factory.getPosition(111L, "engineering_manager");
         Date promotionDate = new Date();

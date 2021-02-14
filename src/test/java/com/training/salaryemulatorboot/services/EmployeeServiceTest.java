@@ -1,9 +1,10 @@
 package com.training.salaryemulatorboot.services;
 
-import com.training.salaryemulatorboot.domain.Employee;
-import com.training.salaryemulatorboot.domain.Position;
-import com.training.salaryemulatorboot.dto.EmployeeDTO;
-import com.training.salaryemulatorboot.dto.PromotionDTO;
+import com.training.salaryemulatorboot.entities.Employee;
+import com.training.salaryemulatorboot.entities.Position;
+import com.training.salaryemulatorboot.entities.PromotionType;
+import com.training.salaryemulatorboot.dto.EmployeeDto;
+import com.training.salaryemulatorboot.dto.PromotionDto;
 import com.training.salaryemulatorboot.repositories.EmployeeRepository;
 import com.training.salaryemulatorboot.repositories.PositionRepository;
 import helpers.Factory;
@@ -11,6 +12,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestFactory;
 import org.mockito.*;
+import org.springframework.beans.BeanUtils;
 
 import java.math.BigDecimal;
 import java.util.Arrays;
@@ -18,7 +20,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.*;
 
@@ -36,20 +37,22 @@ public class EmployeeServiceTest {
     private EmployeeService employeeService;
 
     private Employee employee;
+    private PromotionDto promotionDTO;
 
     @BeforeEach
     public void setUp() {
         employee = Factory.getEmployee();
         MockitoAnnotations.initMocks(this);
+        promotionDTO = new PromotionDto();
     }
 
     @Test
     public void Should_Return_All_Employees() {
-        List<EmployeeDTO> expectedResult = Arrays.asList(employeeDTO(employee));
+        List<Employee> expectedResult = Arrays.asList(employee);
 
         when(employeeRepository.findAll()).thenReturn(Arrays.asList(employee));
 
-        List<EmployeeDTO> actualResult = employeeService.getAllEmployees();
+        List<Employee> actualResult = employeeService.getAllEmployees();
 
         verify(employeeRepository, times(1)).findAll();
 
@@ -60,41 +63,42 @@ public class EmployeeServiceTest {
     public void Should_Return_Employee_By_Id() {
         when(employeeRepository.findById(employee.getId())).thenReturn(Optional.of(employee));
 
-        EmployeeDTO actualResult = employeeService.findById(employee.getId()).get();
+        Employee actualResult = employeeService.findById(employee.getId()).get();
 
         verify(employeeRepository, times(1)).findById(employee.getId());
 
-        assertEquals(employeeDTO(employee), actualResult);
+        assertEquals(employee, actualResult);
     }
 
     @Test
     public void Should_CreateEmployee_When_ValidData() {
+        Employee unsavedEmployee = new Employee();
+        BeanUtils.copyProperties(employee, unsavedEmployee, "id");
+
         Position position = employee.getPosition();
-        EmployeeDTO employeeDTO = employeeDTO(employee);
+        EmployeeDto employeeDto = Factory.getEmployeeDto();
 
         when(positionRepository.findById(position.getId())).thenReturn(Optional.of(position));
-        when(employeeRepository.save(employee)).thenReturn(employee);
+        when(employeeRepository.save(unsavedEmployee)).thenReturn(employee);
 
-        EmployeeDTO actualResult = employeeService.createEmployee(employeeDTO);
+        Employee actualResult = employeeService.createEmployee(employeeDto);
 
-        verify(employeeRepository, times(1)).save(employee);
+        verify(employeeRepository, times(1)).save(unsavedEmployee);
         verify(positionRepository, times(1)).findById(position.getId());
-        verify(promotionService, times(1)).createInitialPromotion(employee);
+        verify(promotionService, times(1)).createInitialPromotion(unsavedEmployee);
 
-        assertAll("Properties set correctly",
-                () -> assertEquals(employee.getId(), actualResult.getId()),
-                () -> assertEquals(position.getId(), actualResult.getPositionId()),
-                () -> assertEquals(employee.getName(), actualResult.getName()),
-                () -> assertEquals(employee.getSalaryCurrency(), actualResult.getSalaryCurrency()),
-                () -> assertEquals(0, actualResult.getSalaryAmount().compareTo(employee.getSalaryAmount()))
-        );
+        assertEquals(employee.getId(), actualResult.getId());
+        assertEquals(position, actualResult.getPosition());
+        assertEquals(employee.getName(), actualResult.getName());
+        assertEquals(employee.getSalaryCurrency(), actualResult.getSalaryCurrency());
+        assertEquals(0, actualResult.getSalaryAmount().compareTo(employee.getSalaryAmount()));
     }
 
     @Test
     public void Should_Promote_Employee_Salary() {
-        PromotionDTO promotionDTO = new PromotionDTO();
         promotionDTO.setNewSalaryAmount(new BigDecimal("1700"));
         promotionDTO.setPromotionDate(new Date());
+        promotionDTO.setPromotionType(PromotionType.SALARY);
 
         Employee updatedEmployee = Factory.getEmployee();
         updatedEmployee.setSalaryAmount(promotionDTO.getNewSalaryAmount());
@@ -102,30 +106,28 @@ public class EmployeeServiceTest {
         when(employeeRepository.findById(employee.getId())).thenReturn(Optional.of(employee));
         when(employeeRepository.save(updatedEmployee)).thenReturn(updatedEmployee);
 
-        Optional<EmployeeDTO> employeeDTOOptional = employeeService.promoteEmployee(employee.getId(), promotionDTO);
-        EmployeeDTO actualResult = employeeDTOOptional.get();
+        Optional<Employee> employeeOptional = employeeService.promoteEmployee(employee.getId(), promotionDTO);
+        Employee actualResult = employeeOptional.get();
 
         verify(promotionService, times(1))
                 .createSalaryPromotion(employee, promotionDTO.getNewSalaryAmount(), promotionDTO.getPromotionDate());
         verify(employeeRepository, times(1)).findById(employee.getId());
         verify(employeeRepository, times(1)).save(updatedEmployee);
 
-        assertAll("Properties set correctly",
-                () -> assertEquals(updatedEmployee.getId(), actualResult.getId()),
-                () -> assertEquals(updatedEmployee.getPosition().getId(), actualResult.getPositionId()),
-                () -> assertEquals(updatedEmployee.getName(), actualResult.getName()),
-                () -> assertEquals(updatedEmployee.getSalaryCurrency(), actualResult.getSalaryCurrency()),
-                () -> assertEquals(0, actualResult.getSalaryAmount().compareTo(updatedEmployee.getSalaryAmount()))
-        );
+        assertEquals(updatedEmployee.getId(), actualResult.getId());
+        assertEquals(updatedEmployee.getPosition(), actualResult.getPosition());
+        assertEquals(updatedEmployee.getName(), actualResult.getName());
+        assertEquals(updatedEmployee.getSalaryCurrency(), actualResult.getSalaryCurrency());
+        assertEquals(0, actualResult.getSalaryAmount().compareTo(updatedEmployee.getSalaryAmount()));
     }
 
     @Test
     public void Should_Promote_Employee_Position() {
         Position newPosition = Factory.getPosition(111L, "engineering_manager");
 
-        PromotionDTO promotionDTO = new PromotionDTO();
         promotionDTO.setNewPositionId(newPosition.getId());
         promotionDTO.setPromotionDate(new Date());
+        promotionDTO.setPromotionType(PromotionType.POSITION);
 
         Employee updatedEmployee = Factory.getEmployee();
         updatedEmployee.setPosition(newPosition);
@@ -134,31 +136,29 @@ public class EmployeeServiceTest {
         when(positionRepository.findById(newPosition.getId())).thenReturn(Optional.of(newPosition));
         when(employeeRepository.save(updatedEmployee)).thenReturn(updatedEmployee);
 
-        Optional<EmployeeDTO> employeeDTOOptional = employeeService.promoteEmployee(employee.getId(), promotionDTO);
-        EmployeeDTO actualResult = employeeDTOOptional.get();
+        Optional<Employee> employeeOptional = employeeService.promoteEmployee(employee.getId(), promotionDTO);
+        Employee actualResult = employeeOptional.get();
 
         verify(promotionService, times(1))
                 .createPositionPromotion(employee, newPosition, promotionDTO.getPromotionDate());
         verify(employeeRepository, times(1)).findById(employee.getId());
         verify(employeeRepository, times(1)).save(updatedEmployee);
 
-        assertAll("Properties set correctly",
-                () -> assertEquals(updatedEmployee.getId(), actualResult.getId()),
-                () -> assertEquals(newPosition.getId(), actualResult.getPositionId()),
-                () -> assertEquals(updatedEmployee.getName(), actualResult.getName()),
-                () -> assertEquals(updatedEmployee.getSalaryCurrency(), actualResult.getSalaryCurrency()),
-                () -> assertEquals(0, actualResult.getSalaryAmount().compareTo(updatedEmployee.getSalaryAmount()))
-        );
+        assertEquals(updatedEmployee.getId(), actualResult.getId());
+        assertEquals(newPosition, actualResult.getPosition());
+        assertEquals(updatedEmployee.getName(), actualResult.getName());
+        assertEquals(updatedEmployee.getSalaryCurrency(), actualResult.getSalaryCurrency());
+        assertEquals(0, actualResult.getSalaryAmount().compareTo(updatedEmployee.getSalaryAmount()));
     }
 
     @Test
-    public void Should_Promote_Employee_Salary_And_Position() {
+    public void Should_Promote_Employee_Position_And_Salary() {
         Position newPosition = Factory.getPosition(111L, "engineering_manager");
 
-        PromotionDTO promotionDTO = new PromotionDTO();
         promotionDTO.setNewPositionId(newPosition.getId());
         promotionDTO.setNewSalaryAmount(new BigDecimal("3456"));
         promotionDTO.setPromotionDate(new Date());
+        promotionDTO.setPromotionType(PromotionType.POSITION_AND_SALARY);
 
         Employee updatedEmployee = Factory.getEmployee();
         updatedEmployee.setPosition(newPosition);
@@ -168,31 +168,18 @@ public class EmployeeServiceTest {
         when(positionRepository.findById(newPosition.getId())).thenReturn(Optional.of(newPosition));
         when(employeeRepository.save(updatedEmployee)).thenReturn(updatedEmployee);
 
-        Optional<EmployeeDTO> employeeDTOOptional = employeeService.promoteEmployee(employee.getId(), promotionDTO);
-        EmployeeDTO actualResult = employeeDTOOptional.get();
+        Optional<Employee> employeeOptional = employeeService.promoteEmployee(employee.getId(), promotionDTO);
+        Employee actualResult = employeeOptional.get();
 
         verify(promotionService, times(1))
                 .createPromotion(employee, newPosition, promotionDTO.getNewSalaryAmount(), promotionDTO.getPromotionDate());
         verify(employeeRepository, times(1)).findById(employee.getId());
         verify(employeeRepository, times(1)).save(updatedEmployee);
 
-        assertAll("Properties set correctly",
-                () -> assertEquals(updatedEmployee.getId(), actualResult.getId()),
-                () -> assertEquals(newPosition.getId(), actualResult.getPositionId()),
-                () -> assertEquals(updatedEmployee.getName(), actualResult.getName()),
-                () -> assertEquals(updatedEmployee.getSalaryCurrency(), actualResult.getSalaryCurrency()),
-                () -> assertEquals(0, actualResult.getSalaryAmount().compareTo(updatedEmployee.getSalaryAmount()))
-        );
-    }
-
-    @TestFactory
-    private EmployeeDTO employeeDTO(Employee emp) {
-        return EmployeeDTO.builder()
-                .id(emp.getId())
-                .positionId(emp.getPosition().getId())
-                .name(emp.getName())
-                .salaryAmount(emp.getSalaryAmount())
-                .salaryCurrency(emp.getSalaryCurrency())
-                .build();
+        assertEquals(updatedEmployee.getId(), actualResult.getId());
+        assertEquals(newPosition, actualResult.getPosition());
+        assertEquals(updatedEmployee.getName(), actualResult.getName());
+        assertEquals(updatedEmployee.getSalaryCurrency(), actualResult.getSalaryCurrency());
+        assertEquals(0, actualResult.getSalaryAmount().compareTo(updatedEmployee.getSalaryAmount()));
     }
 }
