@@ -21,6 +21,11 @@ public class Employee {
     @JsonIgnoreProperties({"hibernateLazyInitializer", "handler", "position"})
     private Position position;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "manager_id")
+    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler", "position"})
+    private Employee manager;
+
     @Column(name = "name", nullable = false)
     @Size(min = 3, max = 50, message = "name must be between 3 and 50 characters")
     private String name;

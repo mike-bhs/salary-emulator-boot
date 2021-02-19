@@ -10,7 +10,6 @@ import com.training.salaryemulatorboot.repositories.PositionRepository;
 import helpers.Factory;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestFactory;
 import org.mockito.*;
 import org.springframework.beans.BeanUtils;
 
@@ -76,19 +75,24 @@ public class EmployeeServiceTest {
         BeanUtils.copyProperties(employee, unsavedEmployee, "id");
 
         Position position = employee.getPosition();
+        Employee manager = employee.getManager();
+
         EmployeeDto employeeDto = Factory.getEmployeeDto();
 
         when(positionRepository.findById(position.getId())).thenReturn(Optional.of(position));
+        when(employeeRepository.findById(manager.getId())).thenReturn(Optional.of(manager));
         when(employeeRepository.save(unsavedEmployee)).thenReturn(employee);
 
         Employee actualResult = employeeService.createEmployee(employeeDto);
 
         verify(employeeRepository, times(1)).save(unsavedEmployee);
         verify(positionRepository, times(1)).findById(position.getId());
+        verify(employeeRepository, times(1)).findById(manager.getId());
         verify(promotionService, times(1)).createInitialPromotion(unsavedEmployee);
 
         assertEquals(employee.getId(), actualResult.getId());
         assertEquals(position, actualResult.getPosition());
+        assertEquals(manager, actualResult.getManager());
         assertEquals(employee.getName(), actualResult.getName());
         assertEquals(employee.getSalaryCurrency(), actualResult.getSalaryCurrency());
         assertEquals(0, actualResult.getSalaryAmount().compareTo(employee.getSalaryAmount()));

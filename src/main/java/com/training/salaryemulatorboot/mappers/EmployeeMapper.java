@@ -12,6 +12,7 @@ import java.util.List;
 @Mapper(componentModel = "spring")
 public interface EmployeeMapper {
     @Mapping(source = "position", target = "positionId", qualifiedByName = "positionToPositionId")
+    @Mapping(source = "manager", target = "managerId", qualifiedByName = "managerToManagerId")
     EmployeeDto toEmployeeDto(Employee employee);
 
     List<EmployeeDto> toEmployeeDtos(List<Employee> employees);
@@ -19,5 +20,14 @@ public interface EmployeeMapper {
     @Named("positionToPositionId")
     static Long positionToPositionId(Position position) {
         return  position.getId();
+    }
+
+    @Named("managerToManagerId")
+    static Long managerToManagerId(Employee manager) {
+        if (manager != null) {
+            return  manager.getId();
+        } else {
+            return null;
+        }
     }
 }

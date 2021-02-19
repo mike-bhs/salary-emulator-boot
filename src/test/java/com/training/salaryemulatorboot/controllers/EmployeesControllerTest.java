@@ -77,6 +77,7 @@ public class EmployeesControllerTest {
                 .andExpect(jsonPath("$.[0].id", is(employeeDto.getId()), Long.class))
                 .andExpect(jsonPath("$.[0].name", is(employeeDto.getName())))
                 .andExpect(jsonPath("$.[0].positionId", is(employeeDto.getPositionId()), Long.class))
+                .andExpect(jsonPath("$.[0].managerId", is(employeeDto.getManagerId()), Long.class))
                 .andExpect(jsonPath("$.[0].salaryAmount", is(employeeDto.getSalaryAmount()), BigDecimal.class))
                 .andExpect(jsonPath("$.[0].salaryCurrency", is(employeeDto.getSalaryCurrency())));
 
@@ -95,6 +96,7 @@ public class EmployeesControllerTest {
                 .andExpect(jsonPath("$.id", is(employeeDto.getId()), Long.class))
                 .andExpect(jsonPath("$.name", is(employeeDto.getName())))
                 .andExpect(jsonPath("$.positionId", is(employeeDto.getPositionId()), Long.class))
+                .andExpect(jsonPath("$.managerId", is(employeeDto.getManagerId()), Long.class))
                 .andExpect(jsonPath("$.salaryAmount", is(employeeDto.getSalaryAmount()), BigDecimal.class))
                 .andExpect(jsonPath("$.salaryCurrency", is(employeeDto.getSalaryCurrency())));
 
@@ -131,6 +133,7 @@ public class EmployeesControllerTest {
                 .andExpect(jsonPath("$.id", is(employeeDto.getId()), Long.class))
                 .andExpect(jsonPath("$.name", is(employeeDto.getName())))
                 .andExpect(jsonPath("$.positionId", is(employeeDto.getPositionId()), Long.class))
+                .andExpect(jsonPath("$.managerId", is(employeeDto.getManagerId()), Long.class))
                 .andExpect(jsonPath("$.salaryAmount", is(employeeDto.getSalaryAmount()), BigDecimal.class))
                 .andExpect(jsonPath("$.salaryCurrency", is(employeeDto.getSalaryCurrency())));
 

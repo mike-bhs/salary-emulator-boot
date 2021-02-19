@@ -33,19 +33,34 @@ public class Factory {
         emp.setSalaryAmount(new BigDecimal("2343.25"));
         emp.setSalaryCurrency("USD");
         emp.setPosition(getPosition());
+        emp.setManager(getManagerEmployee());
 
         return emp;
     }
 
-    public static EmployeeDto getEmployeeDto() {
-        EmployeeDto employeeDto = new EmployeeDto();
-        employeeDto.setId(101L);
-        employeeDto.setName("Bob");
-        employeeDto.setPositionId(123L);
-        employeeDto.setSalaryAmount(new BigDecimal("2343.25"));
-        employeeDto.setSalaryCurrency("USD");
+    @TestFactory
+    public static Employee getManagerEmployee() {
+        Employee emp = new Employee();
 
-        return employeeDto;
+        emp.setId(111L);
+        emp.setName("Josh");
+        emp.setSalaryAmount(new BigDecimal("2750.5"));
+        emp.setSalaryCurrency("USD");
+        emp.setPosition(getPosition(115L, "project_manager"));
+
+        return emp;
+    }
+
+    @TestFactory
+    public static EmployeeDto getEmployeeDto() {
+        return EmployeeDto.builder()
+                .id(101L)
+                .name("Bob")
+                .managerId(111L)
+                .positionId(123L)
+                .salaryAmount(new BigDecimal("2343.25"))
+                .salaryCurrency("USD")
+                .build();
     }
 
     @TestFactory

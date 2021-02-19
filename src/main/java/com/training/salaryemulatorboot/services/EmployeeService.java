@@ -42,7 +42,11 @@ public class EmployeeService {
         BeanUtils.copyProperties(empDTO, employee, "id");
 
         Optional<Position> positionOptional = positionRepository.findById(empDTO.getPositionId());
+        Optional<Employee> managerOptional = employeeRepository.findById(empDTO.getManagerId());
+
         positionOptional.ifPresent(employee::setPosition);
+        managerOptional.ifPresent(employee::setManager);
+
         promotionService.createInitialPromotion(employee);
 
         return employeeRepository.save(employee);

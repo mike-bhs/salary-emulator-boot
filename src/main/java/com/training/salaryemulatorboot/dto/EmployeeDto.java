@@ -17,6 +17,7 @@ public class EmployeeDto implements Serializable {
     private Long id;
     private String name;
     private Long positionId;
+    private Long managerId;
     private BigDecimal salaryAmount;
     private String salaryCurrency;
 }
