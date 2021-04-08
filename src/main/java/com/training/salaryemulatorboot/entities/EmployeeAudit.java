@@ -12,11 +12,16 @@ import java.util.Date;
 
 @Entity
 @Data
-@Table(name = "employees")
-public class Employee {
+@Table(name = "employees_audit")
+public class EmployeeAudit {
     @Id
     @GeneratedValue
     private Long id;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "employee_id", nullable = false)
+    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler", "position"})
+    private Employee employee;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "position_id", nullable = false)
@@ -41,5 +46,6 @@ public class Employee {
 
     @CreationTimestamp
     @Column(name = "created_at")
+    @Temporal(TemporalType.DATE)
     private Date createdAt;
 }

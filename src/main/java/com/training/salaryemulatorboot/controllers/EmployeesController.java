@@ -1,7 +1,6 @@
 package com.training.salaryemulatorboot.controllers;
 
 import com.training.salaryemulatorboot.dto.EmployeeDto;
-import com.training.salaryemulatorboot.dto.PromotionDto;
 import com.training.salaryemulatorboot.entities.Employee;
 import com.training.salaryemulatorboot.mappers.EmployeeMapper;
 import com.training.salaryemulatorboot.services.EmployeeService;
@@ -47,15 +46,13 @@ public class EmployeesController {
         return new ResponseEntity<>(employeeMapper.toEmployeeDto(newEmployee), HttpStatus.CREATED);
     }
 
-    @PutMapping(path = {"/{employeeId}/promote"}, produces = {"application/json"})
-    public ResponseEntity<EmployeeDto> promoteEmployee(@PathVariable("employeeId") Long employeeId,
-                                                       @RequestBody PromotionDto promotionDTO) {
+    @PutMapping(path = {"/{employeeId}/update"}, produces = {"application/json"})
+    public ResponseEntity<EmployeeDto> updateEmployee(@PathVariable("employeeId") Long employeeId,
+                                                       @RequestBody EmployeeDto employeeDto) {
 
-        Optional<Employee> employeeOptional = employeeService.promoteEmployee(employeeId, promotionDTO);
+        Employee employee = employeeService.updateEmployee(employeeId, employeeDto);
 
-        return employeeOptional
-                .map(emp -> new ResponseEntity<>(employeeMapper.toEmployeeDto(emp), HttpStatus.OK))
-                .orElseGet(() -> new ResponseEntity<>(HttpStatus.BAD_REQUEST));
+        return new ResponseEntity<>(employeeMapper.toEmployeeDto(employee), HttpStatus.CREATED);
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)

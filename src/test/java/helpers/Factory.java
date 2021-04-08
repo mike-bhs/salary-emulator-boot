@@ -3,27 +3,11 @@ package helpers;
 import com.training.salaryemulatorboot.dto.EmployeeDto;
 import com.training.salaryemulatorboot.entities.Employee;
 import com.training.salaryemulatorboot.entities.Position;
-import com.training.salaryemulatorboot.entities.Promotion;
 import org.junit.jupiter.api.TestFactory;
 
 import java.math.BigDecimal;
-import java.util.Date;
 
 public class Factory {
-    @TestFactory
-    public static Promotion getPromotion() {
-        Promotion p = new Promotion();
-
-        p.setOldPosition(getPosition());
-        p.setNewPosition(getPosition(23L, "senior_software_engineer"));
-        p.setEmployee(getEmployee());
-        p.setOldSalaryAmount(new BigDecimal("2343.25"));
-        p.setNewSalaryAmount(new BigDecimal("3000"));
-        p.setPromotionDate(new Date());
-
-        return p;
-    }
-
     @TestFactory
     public static Employee getEmployee() {
         Employee emp = new Employee();

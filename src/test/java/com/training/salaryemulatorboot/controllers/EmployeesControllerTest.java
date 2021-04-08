@@ -2,7 +2,6 @@ package com.training.salaryemulatorboot.controllers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.training.salaryemulatorboot.dto.EmployeeDto;
-import com.training.salaryemulatorboot.dto.PromotionDto;
 import com.training.salaryemulatorboot.entities.Employee;
 import com.training.salaryemulatorboot.mappers.EmployeeMapper;
 import com.training.salaryemulatorboot.services.EmployeeService;
@@ -18,7 +17,6 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import java.math.BigDecimal;
 import java.util.Collections;
-import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
@@ -42,17 +40,11 @@ public class EmployeesControllerTest {
     MockMvc mockMvc;
 
     Employee employee;
-    PromotionDto promotionDto;
     EmployeeDto employeeDto;
 
     @BeforeEach
     void setUp() {
         employee = Factory.getEmployee();
-
-        promotionDto = new PromotionDto();
-        promotionDto.setNewPositionId(121L);
-        promotionDto.setNewSalaryAmount(new BigDecimal("2700"));
-        promotionDto.setPromotionDate(new Date());
 
         employeeDto = Factory.getEmployeeDto();
     }
@@ -141,25 +133,25 @@ public class EmployeesControllerTest {
         verify(employeeMapper, times(1)).toEmployeeDto(employee);
     }
 
-    @Test
-    public void Should_Promote_Employee() throws Exception {
-        Long employeeId = 20L;
-        ObjectMapper objectMapper = new ObjectMapper();
-        String payloadJson = objectMapper.writeValueAsString(promotionDto);
-
-        when(employeeService.promoteEmployee(employeeId, promotionDto)).thenReturn(Optional.of(employee));
-        when(employeeMapper.toEmployeeDto(employee)).thenReturn(employeeDto);
-
-        mockMvc.perform(put("/api/v1/employees/20/promote").contentType(MediaType.APPLICATION_JSON).content(payloadJson))
-                .andExpect(status().isOk())
-                .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
-                .andExpect(jsonPath("$.id", is(employeeDto.getId()), Long.class))
-                .andExpect(jsonPath("$.name", is(employeeDto.getName())))
-                .andExpect(jsonPath("$.positionId", is(employeeDto.getPositionId()), Long.class))
-                .andExpect(jsonPath("$.salaryAmount", is(employeeDto.getSalaryAmount()), BigDecimal.class))
-                .andExpect(jsonPath("$.salaryCurrency", is(employeeDto.getSalaryCurrency())));
-
-        verify(employeeMapper, times(1)).toEmployeeDto(employee);
-        verify(employeeService, times(1)).promoteEmployee(employeeId, promotionDto);
-    }
+//    @Test
+//    public void Should_Promote_Employee() throws Exception {
+//        Long employeeId = 20L;
+//        ObjectMapper objectMapper = new ObjectMapper();
+//        String payloadJson = objectMapper.writeValueAsString(promotionDto);
+//
+//        when(employeeService.promoteEmployee(employeeId, promotionDto)).thenReturn(Optional.of(employee));
+//        when(employeeMapper.toEmployeeDto(employee)).thenReturn(employeeDto);
+//
+//        mockMvc.perform(put("/api/v1/employees/20/promote").contentType(MediaType.APPLICATION_JSON).content(payloadJson))
+//                .andExpect(status().isOk())
+//                .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
+//                .andExpect(jsonPath("$.id", is(employeeDto.getId()), Long.class))
+//                .andExpect(jsonPath("$.name", is(employeeDto.getName())))
+//                .andExpect(jsonPath("$.positionId", is(employeeDto.getPositionId()), Long.class))
+//                .andExpect(jsonPath("$.salaryAmount", is(employeeDto.getSalaryAmount()), BigDecimal.class))
+//                .andExpect(jsonPath("$.salaryCurrency", is(employeeDto.getSalaryCurrency())));
+//
+//        verify(employeeMapper, times(1)).toEmployeeDto(employee);
+//        verify(employeeService, times(1)).promoteEmployee(employeeId, promotionDto);
+//    }
 }

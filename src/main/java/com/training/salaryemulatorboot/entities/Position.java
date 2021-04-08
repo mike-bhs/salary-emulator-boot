@@ -14,6 +14,7 @@ import javax.validation.constraints.NotEmpty;
 // сохранять историю позиции Jr -> Middle -> Senior
 // когда позиция была занята?
 // как поменялось количество подчененных изменилось за год
+// * аудит, вьюха для поиска
 // Intercepter for incoming value
 public class Position {
     @Id

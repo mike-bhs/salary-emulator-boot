@@ -1,0 +1,7 @@
+DELETE FROM `employees_audit` WHERE `id` IN (10001, 10002, 10003, 10004, 10005, 10006, 10007);
+
+DELETE FROM `employees` WHERE `id` IN (10003, 10004, 10005);
+DELETE FROM `employees` WHERE `id` IN (10001, 10002);
+
+DELETE FROM `positions` WHERE `id` = 10002;
+DELETE FROM `positions` WHERE `id` = 10001;

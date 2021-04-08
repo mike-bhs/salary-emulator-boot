@@ -3,104 +3,62 @@ package com.training.salaryemulatorboot.services;
 import com.training.salaryemulatorboot.entities.Employee;
 import com.training.salaryemulatorboot.entities.Position;
 import com.training.salaryemulatorboot.dto.EmployeeDto;
-import com.training.salaryemulatorboot.dto.PromotionDto;
 import com.training.salaryemulatorboot.repositories.EmployeeRepository;
-import com.training.salaryemulatorboot.repositories.PositionRepository;
+import com.training.salaryemulatorboot.utils.NullAwareBinUtils;
+import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 
-import javax.transaction.Transactional;
-import java.math.BigDecimal;
-import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
 @Service
+@RequiredArgsConstructor
 public class EmployeeService {
-    private final PromotionService promotionService;
     private final EmployeeRepository employeeRepository;
-    private final PositionRepository positionRepository;
+    private final PositionService positionService;
 
-    public EmployeeService(EmployeeRepository empRepo, PositionRepository positionRepo, PromotionService promotionservice) {
-        this.promotionService = promotionservice;
-        this.employeeRepository = empRepo;
-        this.positionRepository = positionRepo;
-    }
-
+    @SneakyThrows
     public List<Employee> getAllEmployees() {
         return employeeRepository.findAll();
     }
 
     public Optional<Employee> findById(Long id) {
-        return employeeRepository.findById(id);
+        if (id != null) {
+            return employeeRepository.findById(id);
+        } else {
+            return Optional.empty();
+        }
     }
 
-    @Transactional
     public Employee createEmployee(EmployeeDto empDTO) {
         Employee employee = new Employee();
 
         BeanUtils.copyProperties(empDTO, employee, "id");
 
-        Optional<Position> positionOptional = positionRepository.findById(empDTO.getPositionId());
-        Optional<Employee> managerOptional = employeeRepository.findById(empDTO.getManagerId());
+        // TODO check if optional isPresent it's required
+        Optional<Position> positionOptional = positionService.findById(empDTO.getPositionId());
+        Optional<Employee> managerOptional = findById(empDTO.getManagerId());
 
         positionOptional.ifPresent(employee::setPosition);
         managerOptional.ifPresent(employee::setManager);
 
-        promotionService.createInitialPromotion(employee);
-
         return employeeRepository.save(employee);
     }
 
-    @Transactional
-    public Optional<Employee> promoteEmployee(Long employeeId, PromotionDto promotionDTO) {
-        return employeeRepository.findById(employeeId).map(employee -> {
-            employee = doPromotion(employee, promotionDTO);
-            return Optional.of(employee);
-        }).orElse(Optional.empty());
-    }
+    public Employee updateEmployee(Long employeeId, EmployeeDto employeeDto) {
+        Optional<Employee> employeeOptional = findById(employeeId);
+        // TODO check if optional isPresent
+        Employee employee = employeeOptional.get();
 
-    private Employee doPromotion(Employee employee, PromotionDto promotionDTO) {
-        switch (promotionDTO.getPromotionType()) {
-            case SALARY:
-                return raiseSalary(employee, promotionDTO.getNewSalaryAmount(), promotionDTO.getPromotionDate());
+        NullAwareBinUtils.copyPropertiesIgnoreNull(employeeDto, employee);
 
-            case POSITION:
-                return positionRepository.findById(promotionDTO.getNewPositionId())
-                        .map(position -> raisePosition(employee, position, promotionDTO.getPromotionDate()))
-                        .orElse(employee);
+        Optional<Position> positionOptional = positionService.findById(employeeDto.getPositionId());
+        Optional<Employee> managerOptional = findById(employeeDto.getManagerId());
 
-            case POSITION_AND_SALARY:
-                return positionRepository.findById(promotionDTO.getNewPositionId())
-                        .map(position -> raisePositionAndSalary(employee, position, promotionDTO.getNewSalaryAmount(), promotionDTO.getPromotionDate()))
-                        .orElse(employee);
-
-            default:
-                return employee;
-        }
-    }
-
-    private Employee raisePositionAndSalary(Employee employee, Position newPosition, BigDecimal newSalaryAmount, Date promotionDate) {
-        promotionService.createPromotion(employee, newPosition, newSalaryAmount, promotionDate);
-
-        employee.setPosition(newPosition);
-        employee.setSalaryAmount(newSalaryAmount);
-
-        return employeeRepository.save(employee);
-    }
-
-    private Employee raisePosition(Employee employee, Position newPosition, Date promotionDate) {
-        promotionService.createPositionPromotion(employee, newPosition, promotionDate);
-
-        employee.setPosition(newPosition);
-
-        return employeeRepository.save(employee);
-    }
-
-    private Employee raiseSalary(Employee employee, BigDecimal newSalaryAmount, Date promotionDate) {
-        promotionService.createSalaryPromotion(employee, newSalaryAmount, promotionDate);
-
-        employee.setSalaryAmount(newSalaryAmount);
+        positionOptional.ifPresent(employee::setPosition);
+        managerOptional.ifPresent(employee::setManager);
 
         return employeeRepository.save(employee);
     }
